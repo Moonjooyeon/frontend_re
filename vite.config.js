@@ -1,20 +1,25 @@
-import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite'
 
-// https://vite.dev/config/
 export default defineConfig({
-    plugins: [react()],
-    esbuild: {
-        loader: 'jsx',
-        include: /src\/.*\.js$/, // src 이하의 .js를 JSX로 처리
+  plugins: [react()],
+  esbuild: {
+    loader: 'jsx',
+    include: /src\/.*\.(js|jsx)$/,
+  },
+  server: {
+    host: '127.0.0.1',          // ← IPv6(::1) 꼬임 방지
+    port: 5173,
+    proxy: {
+      '/api': {
+        target: 'https://breezeless-muskier-hong.ngrok-free.dev', // ← ngrok HTTPS : 매번 주소 바뀜.
+        changeOrigin: true,
+        secure: true,                                             // ngrok은 공인 인증서: true 권장
+        headers: { 'ngrok-skip-browser-warning': 'true' },        // 배너 우회
+        // 타임아웃 여유 (대기 중 끊김 방지)
+        timeout: 30_000,
+        proxyTimeout: 30_000,
+      },
     },
-
-    // 👇 여기가 핵심: 백엔드(Spring Boot)로 프록시 설정
-    server: {
-        proxy: {
-            '/api': { target: 'http://localhost:8080', changeOrigin: true },
-
-        },
-        port: 5173,
-    },
+  },
 })
